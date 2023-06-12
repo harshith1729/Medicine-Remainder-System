@@ -17,4 +17,5 @@ By utilizing the MERN stack, MongoDB for data storage, and incorporating WhatsAp
 
 HOW TO RUN?
 1) DOWNLOAD the code and extract on your Computer.
-2) Read the attached HOW TO RUN PDF 
+2) DOWNLOAD VS CODE , NODE JS , MONGO DB COMMUNITY SERVER ON YOUR PC.
+3) Read the attached HOW TO RUN PDF 
