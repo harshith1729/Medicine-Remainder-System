@@ -25,16 +25,25 @@ A full-stack web application that helps users manage their medication schedules 
 
 **2. Setup Backend**
 
-cd backend
+a.cd backend
 
-npm install
+b.npm install
 
-node index.js
+c.node index.js
 
 **3.Setup Frontend**
 
-cd ../frontend
+a.cd ../frontend
 
-npm install
+b.npm install
 
-npm start
+c.npm start
+
+**The working Model : **
+
+-->Follow the mouse pointer to see the notification on whatsaap
+
+
+https://github.com/user-attachments/assets/5f294043-9c5d-4181-a306-8cc2a95aefdc
+
+
