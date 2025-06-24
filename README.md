@@ -24,17 +24,17 @@ A full-stack web application that helps users manage their medication schedules 
 | Notifications | Twilio API (WhatsApp) |
 
 **2. Setup Backend**
-bash
-Copy
-Edit
+
 cd backend
+
 npm install
+
 node index.js
 
 **3.Setup Frontend**
-bash
-Copy
-Edit
+
 cd ../frontend
+
 npm install
+
 npm start
