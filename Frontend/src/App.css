@@ -8,16 +8,21 @@
 }
 
 .homepage {
-  min-width: 100%;
-  min-height: 100%;
-  background: inherit;
+  width: 100vw; /* Ensures full viewport width */
+  height: 100vh; /* Ensures full viewport height */
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* background: linear-gradient(to bottom right, rgb(125, 240, 255), rgb(151, 169, 250), rgb(253, 209, 158)) */
-  background-image: url(../imagesUse/background.jpg);
-
+  justify-content: center; /* Centers content properly */
+  background-image: url('../imagesUse/b.jpg');
+  background-repeat: no-repeat;
+  background-size: cover; /* Ensures full-screen coverage */
+  background-position: center;
+  margin: 0; /* Removes extra margins */
+  padding: 0; /* Removes extra padding */
 }
+
+
 
 .homepage_header {
   margin: 2rem;

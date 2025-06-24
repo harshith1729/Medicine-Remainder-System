@@ -1,108 +1,120 @@
-require('dotenv').config()
-const express = require("express")
-const mongoose = require("mongoose")
-const cors = require("cors")
+require('dotenv').config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
 
-//App Config
-const app = express()
-app.use(express.json())
-app.use(express.urlencoded())
-app.use(cors())
+const twilio = require("twilio");
 
-//DB config
-mongoose.connect('mongodb://127.0.0.1:27017/medicineReminderDB', {
+// Twilio Setup
+const accountSid = process.env.ACCOUNT_SID;
+const authToken = process.env.AUTH_TOKEN;
+
+if (!accountSid || !authToken) {
+    console.error("❌ Twilio credentials missing. Check .env file!");
+    process.exit(1);
+}
+
+const client = new twilio(accountSid, authToken);
+
+// App Config
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Fixed deprecated warning
+app.use(cors());
+
+// DB Config
+mongoose.connect('mongodb://localhost:27017/medicineReminderDB', {
     useNewUrlParser: true,
     useUnifiedTopology: true
-},).then(() => console.log("connected"))
-    .catch((err) => { console.error(err) });
+}).then(() => console.log("✅ MongoDB Connected"))
+  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
-// .then(()=>console.log('Connected Successfully'))
-// .catch((err)=>{console.error(err);});
-
+// Reminder Schema
 const reminderSchema = new mongoose.Schema({
-    reminderMsg: String,
-    remindAt: String,
-    isReminded: Boolean
-})
+    reminderMsg: { type: String, required: true },
+    remindAt: { type: Date, required: true },  // Ensuring it's stored as Date
+    isReminded: { type: Boolean, default: false }
+});
 
-const Reminder = new mongoose.model("reminder", reminderSchema)
+const Reminder = mongoose.model("Reminder", reminderSchema);
 
+// Interval to Check & Send Reminders
 setInterval(async () => {
     try {
-      const reminderList = await Reminder.find({}).exec();
-      if (reminderList) {
+        const reminderList = await Reminder.find({ isReminded: false }).exec();
+        const now = new Date();
+
         reminderList.forEach(async (reminder) => {
-          if (!reminder.isReminded) {
-            const now = new Date();
-            if (new Date(reminder.remindAt) - now < 0) {
-              await Reminder.findByIdAndUpdate(reminder._id, { isReminded: true });
-              // WhatsApp Reminding Function
-              client.messages
-                .create({
-                  body: reminder.reminderMsg,
-                  from: 'whatsapp:+14155238886',
-                  to: 'whatsapp:+919578547959', //ENTER YOUR MOBILE NUMBER <------------------------- IMPORTANT
-                })
-                .then((message) => console.log(message.sid));
+            if (reminder.remindAt && new Date(reminder.remindAt) <= now) {
+                await Reminder.findByIdAndUpdate(reminder._id, { isReminded: true });
+
+                // WhatsApp Reminder Message (with 💊 emoji)
+                client.messages.create({
+                    body: `💊 Medicine Reminder: ${reminder.reminderMsg}.`,
+                    from: "whatsapp:+14155238886",
+                    to: "whatsapp:+91" // Replace with your phone number
+                }).then((message) => console.log("✅ Reminder Sent:", message.sid))
+                  .catch((error) => console.error("❌ Twilio Error:", error));
             }
-          }
         });
-      }
     } catch (error) {
-      console.log(error);
+        console.error("❌ Reminder Check Error:", error);
     }
-  }, 10000);
+}, 10000);
 
+// API Routes
 
-
-
-const accountSid = process.env.ACCOUNT_SID
-const authToken = process.env.AUTH_TOKEN;
-const client = require('twilio')(accountSid, authToken);
-
-
-
-
-
-
-//API routes
+// Get All Reminders
 app.get("/getAllReminder", async (req, res) => {
     try {
-        const reminderList = await Reminder.find({}).exec();
-        res.send(reminderList);
+        const reminders = await Reminder.find({});
+        res.json(reminders);
     } catch (error) {
-        console.log(error);
+        console.error("❌ Fetch Reminders Error:", error);
         res.status(500).send("An error occurred");
     }
 });
 
+// Add Reminder
 app.post("/addReminder", async (req, res) => {
     try {
         const { reminderMsg, remindAt } = req.body;
+
+        if (!reminderMsg || !remindAt) {
+            return res.status(400).json({ error: "reminderMsg and remindAt are required" });
+        }
+
         const reminder = new Reminder({
             reminderMsg,
-            remindAt,
-            isReminded: false,
+            remindAt: new Date(remindAt),
+            isReminded: false
         });
+
         await reminder.save();
-        const reminderList = await Reminder.find({});
-        res.send(reminderList);
+        const reminders = await Reminder.find({});
+        res.json(reminders);
     } catch (error) {
-        console.log(error);
+        console.error("❌ Add Reminder Error:", error);
         res.status(500).send("An error occurred");
     }
 });
 
+// Delete Reminder
 app.post("/deleteReminder", async (req, res) => {
     try {
-        await Reminder.deleteOne({ _id: req.body.id });
-        const reminderList = await Reminder.find({}).exec();
-        res.send(reminderList);
+        if (!req.body.id) {
+            return res.status(400).json({ error: "Reminder ID is required" });
+        }
+
+        await Reminder.findByIdAndDelete(req.body.id);
+        const reminders = await Reminder.find({});
+        res.json(reminders);
     } catch (error) {
-        console.log(error);
+        console.error("❌ Delete Reminder Error:", error);
         res.status(500).send("An error occurred");
     }
 });
 
-
-app.listen(9000, () => console.log("Be started"))
+// Start Server
+const PORT = process.env.PORT || 9000;
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
