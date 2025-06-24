@@ -1,6 +1,6 @@
 # 💊 Medicine Reminder App
 
-A full-stack web application that helps users manage their medication schedules efficiently. Users can set reminders for taking their medicines and receive **automated WhatsApp notifications** using the **Twilio API**.
+A full-stack web application that helps users manage their medication schedules efficiently. Users can set reminders for taking their medicines and receive **automated WhatsApp notifications** using the **Twilio API**. 
 
 ---
 
